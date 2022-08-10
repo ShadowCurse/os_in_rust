@@ -1,2 +1,7 @@
-[target.'cfg(target_os = "linux")']
-rustflags = ["-C", "link-arg=-nostartfiles"]
+[target.'cfg(target_os = "none")']
+runner = "cargo run --package boot --"
+
+[alias]
+kbuild = "build --target x86_64-target.json -Zbuild-std=core -Zbuild-std-features=compiler-builtins-mem"
+kimage = "run --target x86_64-target.json -Zbuild-std=core -Zbuild-std-features=compiler-builtins-mem -- --no-run"
+krun = "run --target x86_64-target.json -Zbuild-std=core -Zbuild-std-features=compiler-builtins-mem"
