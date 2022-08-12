@@ -11,9 +11,9 @@ const FONT_SIZE: usize = 14;
 const BITMAP_LETTER_WIDTH: usize = get_bitmap_width(FontWeight::Regular, BitmapHeight::Size14);
 
 /// Global writer for the framebuffer
-pub static mut TEXTWRITER: Option<TextDisplay> = None;
+pub static mut TEXTWRITER: Option<TextDisplay<'static>> = None;
 
-pub fn init_text_display(boot_info: &mut BootInfo) {
+pub fn init_text_display(boot_info: &'static mut BootInfo) {
     if let Some(framebuffer) = boot_info.framebuffer.as_mut() {
         unsafe { TEXTWRITER = Some(TextDisplay::new(framebuffer)) };
     }
