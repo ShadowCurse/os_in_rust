@@ -2,11 +2,11 @@
 #![no_main]
 
 use bootloader::{entry_point, BootInfo};
-use core::{fmt::Write, panic::PanicInfo};
+use core::panic::PanicInfo;
 
 mod text_display;
 
-use text_display::TextDisplay;
+use text_display::init_text_display;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -16,9 +16,7 @@ fn panic(_info: &PanicInfo) -> ! {
 entry_point!(main);
 
 fn main(boot_info: &'static mut BootInfo) -> ! {
-    if let Some(framebuffer) = boot_info.framebuffer.as_mut() {
-        let mut display = TextDisplay::new(framebuffer);
-        write!(display, "Hello!");
-    }
+    init_text_display(boot_info);
+    println!("Hello world");
     loop {}
 }

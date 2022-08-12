@@ -1,12 +1,42 @@
-use bootloader::boot_info::{FrameBuffer, FrameBufferInfo, PixelFormat};
+use bootloader::{
+    boot_info::{FrameBuffer, FrameBufferInfo, PixelFormat},
+    BootInfo,
+};
 use noto_sans_mono_bitmap::{get_bitmap, get_bitmap_width, BitmapChar, BitmapHeight, FontWeight};
 
 /// Additional vertical space between lines
 const LINE_SPACING: usize = 0;
-/// Additional vertical space between separate log messages
-const LOG_SPACING: usize = 2;
 /// Font size
 const FONT_SIZE: usize = 14;
+const BITMAP_LETTER_WIDTH: usize = get_bitmap_width(FontWeight::Regular, BitmapHeight::Size14);
+
+/// Global writer for the framebuffer
+pub static mut TEXTWRITER: Option<TextDisplay> = None;
+
+pub fn init_text_display(boot_info: &mut BootInfo) {
+    if let Some(framebuffer) = boot_info.framebuffer.as_mut() {
+        unsafe { TEXTWRITER = Some(TextDisplay::new(framebuffer)) };
+    }
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::text_display::_print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! println {
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+#[doc(hidden)]
+pub fn _print(args: core::fmt::Arguments) {
+    use core::fmt::Write;
+    if let Some(ref mut writer) = unsafe { TEXTWRITER.as_mut() } {
+        writer.write_fmt(args).unwrap();
+    }
+}
 
 pub struct TextDisplay<'a> {
     info: FrameBufferInfo,
@@ -18,9 +48,11 @@ pub struct TextDisplay<'a> {
 impl<'a> TextDisplay<'a> {
     /// Creates a new logger that uses the given framebuffer.
     pub fn new(framebuffer: &'a mut FrameBuffer) -> Self {
+        let info = framebuffer.info();
+        let framebuffer =  framebuffer.buffer_mut();
         let mut logger = Self {
-            info: framebuffer.info(),
-            framebuffer: framebuffer.buffer_mut(),
+            info,
+            framebuffer,
             x_pos: 0,
             y_pos: 0,
         };
@@ -31,10 +63,6 @@ impl<'a> TextDisplay<'a> {
     fn newline(&mut self) {
         self.y_pos += FONT_SIZE + LINE_SPACING;
         self.carriage_return()
-    }
-
-    fn add_vspace(&mut self, space: usize) {
-        self.y_pos += space;
     }
 
     fn carriage_return(&mut self) {
@@ -64,8 +92,6 @@ impl<'a> TextDisplay<'a> {
                 if self.width() <= self.x_pos {
                     self.newline();
                 }
-                const BITMAP_LETTER_WIDTH: usize =
-                    get_bitmap_width(FontWeight::Regular, BitmapHeight::Size14);
                 if (self.height() - BITMAP_LETTER_WIDTH) <= self.y_pos {
                     self.clear();
                 }
@@ -96,7 +122,7 @@ impl<'a> TextDisplay<'a> {
         let byte_offset = pixel_offset * bytes_per_pixel;
         self.framebuffer[byte_offset..(byte_offset + bytes_per_pixel)]
             .copy_from_slice(&color[..bytes_per_pixel]);
-        let _ = unsafe { core::ptr::read_volatile(&self.framebuffer[byte_offset]) };
+        // let _ = unsafe { core::ptr::read_volatile(&self.framebuffer[byte_offset]) };
     }
 }
 
