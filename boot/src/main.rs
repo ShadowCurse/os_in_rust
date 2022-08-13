@@ -12,13 +12,14 @@ fn main() {
         let path = PathBuf::from(args.next().unwrap());
         path.canonicalize().unwrap()
     };
-    let no_boot = if let Some(arg) = args.next() {
+    let (no_boot, no_display) = if let Some(arg) = args.next() {
         match arg.as_str() {
-            "--no-run" => true,
+            "--no-run" => (true, false),
+            "--no-display" => (false, true),
             other => panic!("unexpected argument `{}`", other),
         }
     } else {
-        false
+        (false, false)
     };
 
     let bios = create_disk_images(&kernel_binary_path);
@@ -33,7 +34,14 @@ fn main() {
         .arg("-drive")
         .arg(format!("format=raw,file={}", bios.display()))
         .arg("-device")
-        .arg("isa-debug-exit,iobase=0xf4,iosize=0x04");
+        .arg("isa-debug-exit,iobase=0xf4,iosize=0x04")
+        .arg("-serial")
+        .arg("stdio");
+
+    if no_display {
+        run_cmd.arg("-display").arg("none");
+    }
+
     run_cmd.args(RUN_ARGS);
 
     let exit_status = run_cmd.status().unwrap();
