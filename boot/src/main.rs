@@ -31,12 +31,20 @@ fn main() {
     let mut run_cmd = Command::new("qemu-system-x86_64");
     run_cmd
         .arg("-drive")
-        .arg(format!("format=raw,file={}", bios.display()));
+        .arg(format!("format=raw,file={}", bios.display()))
+        .arg("-device")
+        .arg("isa-debug-exit,iobase=0xf4,iosize=0x04");
     run_cmd.args(RUN_ARGS);
 
     let exit_status = run_cmd.status().unwrap();
     if !exit_status.success() {
-        std::process::exit(exit_status.code().unwrap_or(1));
+        if let Some(code) = exit_status.code() {
+            if code == 33 {
+                std::process::exit(0);
+            } else {
+                std::process::exit(exit_status.code().unwrap_or(1));
+            }
+        }
     }
 }
 

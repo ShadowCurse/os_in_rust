@@ -11,3 +11,4 @@ members = [
 [dependencies]
 bootloader = "0.10.12"
 noto-sans-mono-bitmap = { version = "0.1.2", default-features = false, features = ["regular", "size_14"] }
+x86_64 = "0.14.10"
