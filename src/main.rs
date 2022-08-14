@@ -12,6 +12,8 @@ mod text_display;
 
 #[cfg(test)]
 mod serial;
+#[cfg(test)]
+mod tests;
 
 use text_display::init_text_display;
 
@@ -31,13 +33,13 @@ fn panic(info: &PanicInfo) -> ! {
 }
 
 #[cfg(test)]
-fn test_runner(tests: &[&dyn Fn()]) {
+fn test_runner(tests: &[&dyn tests::Testable]) {
     use crate::serial::init_serial_port;
 
     init_serial_port();
     println!("Running {} tests", tests.len());
     for test in tests {
-        test();
+        test.run();
     }
 
     exit_qemu(QemuExitCode::Success);
@@ -72,7 +74,5 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
 
 #[test_case]
 fn trivial_assertion() {
-    print!("trivial assertion... ");
     assert_eq!(1, 1);
-    println!("[ok]");
 }
