@@ -3,10 +3,12 @@
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)]
 #![reexport_test_harness_main = "test_main"]
+#![feature(abi_x86_interrupt)]
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 
+mod interrupts;
 mod print;
 mod text_display;
 
@@ -15,6 +17,7 @@ mod serial;
 #[cfg(test)]
 mod tests;
 
+use interrupts::init_idt;
 use text_display::init_text_display;
 
 #[cfg(not(test))]
@@ -67,6 +70,9 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
     test_main();
 
     init_text_display(boot_info);
+    init_idt();
+
+    x86_64::instructions::interrupts::int3();
 
     println!("Hello world");
     loop {}
