@@ -6,18 +6,16 @@
 #![feature(abi_x86_interrupt)]
 
 use bootloader::{entry_point, BootInfo};
-use os_in_rust::{interrupts::init_idt, println, text_display::init_text_display};
+use os_in_rust::{interrupts::init_idt, println};
 
 entry_point!(main);
 fn main(boot_info: &'static mut BootInfo) -> ! {
-    #[cfg(test)]
-    test_main();
-
-    init_text_display(boot_info);
     init_idt();
-
-    x86_64::instructions::interrupts::int3();
-
-    println!("Hello world");
+    test_main();
     loop {}
+}
+
+#[test_case]
+fn test_println() {
+    println!("test_println output");
 }
