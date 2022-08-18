@@ -7,16 +7,17 @@
 
 use core::panic::PanicInfo;
 
+pub mod gdt;
 pub mod interrupts;
 pub mod print;
-pub mod text_display;
-
 pub mod serial;
 pub mod tests;
+pub mod text_display;
 
 #[cfg(not(test))]
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(info: &PanicInfo) -> ! {
+    println!("PANIC: INFO:{:#?}", info);
     loop {}
 }
 
@@ -58,7 +59,7 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 }
 
 #[cfg(test)]
-use bootloader::{BootInfo, entry_point};
+use bootloader::{entry_point, BootInfo};
 
 #[cfg(test)]
 entry_point!(main);

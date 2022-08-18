@@ -13,3 +13,4 @@ bootloader = "0.10.12"
 noto-sans-mono-bitmap = { version = "0.1.2", default-features = false, features = ["regular", "size_14"] }
 x86_64 = "0.14.10"
 uart_16550 = "0.2.18"
+lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
