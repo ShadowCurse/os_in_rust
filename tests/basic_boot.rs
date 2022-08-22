@@ -6,11 +6,12 @@
 #![feature(abi_x86_interrupt)]
 
 use bootloader::{entry_point, BootInfo};
-use os_in_rust::{interrupts::init_idt, println};
+use core::panic::PanicInfo;
+use os_in_rust::{init, println};
 
 entry_point!(main);
-fn main(boot_info: &'static mut BootInfo) -> ! {
-    init_idt();
+fn main(_boot_info: &'static mut BootInfo) -> ! {
+    init();
     test_main();
     loop {}
 }
@@ -18,4 +19,14 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
 #[test_case]
 fn test_println() {
     println!("test_println output");
+}
+
+#[panic_handler]
+fn ph(info: &PanicInfo) -> ! {
+    use os_in_rust::{exit_qemu, QemuExitCode};
+
+    println!("[failed]\n");
+    println!("Error: {}\n", info);
+    exit_qemu(QemuExitCode::Failed);
+    loop {}
 }

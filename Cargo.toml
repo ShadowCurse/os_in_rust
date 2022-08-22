@@ -8,6 +8,14 @@ members = [
     "boot",
 ]
 
+[[test]]
+name = "stack_overflow"
+harness = false
+
+[[test]]
+name = "should_panic"
+harness = false
+
 [dependencies]
 bootloader = "0.10.12"
 noto-sans-mono-bitmap = { version = "0.1.2", default-features = false, features = ["regular", "size_14"] }

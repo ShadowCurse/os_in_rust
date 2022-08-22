@@ -14,16 +14,15 @@ pub mod serial;
 pub mod tests;
 pub mod text_display;
 
-#[cfg(not(test))]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
+use gdt::init_gdt;
+use interrupts::init_idt;
+
+pub fn panic_handler(info: &PanicInfo) -> ! {
     println!("PANIC: INFO:{:#?}", info);
     loop {}
 }
 
-#[cfg(test)]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
+pub fn panic_handler_test(info: &PanicInfo) -> ! {
     println!("[failed]\n");
     println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
@@ -58,19 +57,30 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
     }
 }
 
-#[cfg(test)]
-use bootloader::{entry_point, BootInfo};
-
-#[cfg(test)]
-entry_point!(main);
-
-#[cfg(test)]
-fn main(_boot_info: &'static mut BootInfo) -> ! {
-    test_main();
-    loop {}
+pub fn init() {
+    init_idt();
+    init_gdt();
 }
 
-#[test_case]
-fn trivial_assertion() {
-    assert_eq!(1, 1);
+#[cfg(test)]
+mod test {
+    use super::*;
+    use bootloader::{entry_point, BootInfo};
+
+    entry_point!(main);
+
+    fn main(_boot_info: &'static mut BootInfo) -> ! {
+        test_main();
+        loop {}
+    }
+
+    #[panic_handler]
+    fn ph(info: &PanicInfo) -> ! {
+        panic_handler_test(info)
+    }
+
+    #[test_case]
+    fn trivial_assertion() {
+        assert_eq!(1, 1);
+    }
 }
