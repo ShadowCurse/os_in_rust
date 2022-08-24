@@ -15,7 +15,7 @@ pub mod tests;
 pub mod text_display;
 
 use gdt::init_gdt;
-use interrupts::init_idt;
+use interrupts::{init_idt, init_pics};
 
 pub fn panic_handler(info: &PanicInfo) -> ! {
     println!("PANIC: INFO:{:#?}", info);
@@ -60,6 +60,8 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 pub fn init() {
     init_idt();
     init_gdt();
+    init_pics();
+    x86_64::instructions::interrupts::enable();
 }
 
 #[cfg(test)]

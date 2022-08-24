@@ -17,10 +17,6 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
     init_text_display(boot_info);
     init();
 
-    unsafe {
-        *(0xdeadbeef as *mut u64) = 42;
-    };
-
     println!("Hello world");
     loop {}
 }
