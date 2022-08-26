@@ -23,6 +23,7 @@ fn main(_boot_info: &'static mut BootInfo) -> ! {
     panic!("Execution continued after stack overflow");
 }
 
+#[allow(unconditional_recursion)]
 fn stack_overflow() {
     stack_overflow();
 }
