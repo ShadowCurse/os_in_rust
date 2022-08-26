@@ -58,7 +58,7 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 }
 
 pub fn init() {
-    // init_gdt();
+    init_gdt();
     init_idt();
     init_pics();
     x86_64::instructions::interrupts::enable();

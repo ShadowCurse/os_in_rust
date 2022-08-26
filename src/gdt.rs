@@ -5,6 +5,8 @@ use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::VirtAddr;
 
+use crate::println;
+
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
 const STACK_SIZE: usize = 4096 * 5;
@@ -25,6 +27,7 @@ lazy_static! {
     static ref GDT: (GlobalDescriptorTable, Selectors) = {
         let mut gdt = GlobalDescriptorTable::new();
         let code_selector = gdt.add_entry(Descriptor::kernel_code_segment());
+        let _data_selector = gdt.add_entry(Descriptor::kernel_data_segment());
         let tss_selector = gdt.add_entry(Descriptor::tss_segment(&TSS));
         (
             gdt,
@@ -43,8 +46,15 @@ struct Selectors {
 
 pub fn init_gdt() {
     GDT.0.load();
+    println!("code_selector: {:#?}", GDT.1.code_selector);
+    println!("tss_selector: {:#?}", GDT.1.tss_selector);
     unsafe {
         CS::set_reg(GDT.1.code_selector);
         load_tss(GDT.1.tss_selector);
     }
+}
+
+#[test_case]
+fn test_breakpoint_exception() {
+    x86_64::instructions::interrupts::int3();
 }
