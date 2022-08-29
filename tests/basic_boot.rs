@@ -13,7 +13,7 @@ entry_point!(main);
 fn main(_boot_info: &'static mut BootInfo) -> ! {
     init();
     test_main();
-    loop {}
+    panic!("Qemu not exited");
 }
 
 #[test_case]

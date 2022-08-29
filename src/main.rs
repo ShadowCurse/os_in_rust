@@ -7,7 +7,7 @@
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os_in_rust::{init, panic_handler, println, text_display::init_text_display};
+use os_in_rust::{init, panic_handler, println, text_display::init_text_display, hlt_loop};
 
 entry_point!(main);
 fn main(boot_info: &'static mut BootInfo) -> ! {
@@ -18,7 +18,7 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
     init();
 
     println!("Hello world");
-    loop {}
+    hlt_loop();
 }
 
 #[panic_handler]

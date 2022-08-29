@@ -14,7 +14,7 @@ fn main(_boot_info: &'static mut BootInfo) -> ! {
     println!("[test did not panic]");
     exit_qemu(QemuExitCode::Failed);
 
-    loop {}
+    panic!("Qemu not exited");
 }
 
 fn should_fail() {

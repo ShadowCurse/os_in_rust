@@ -1,7 +1,12 @@
 use crate::{gdt::DOUBLE_FAULT_IST_INDEX, print, println};
 use lazy_static::lazy_static;
+use pc_keyboard::{layouts::Us104Key, HandleControl, Keyboard, ScancodeSet1, DecodedKey};
 use pic8259::ChainedPics;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
+use spin::Mutex;
+use x86_64::{
+    instructions::port::Port,
+    structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode},
+};
 
 pub const PIC_1_OFFSET: u8 = 32;
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
@@ -39,11 +44,20 @@ extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn invalid_tss_handler(stack_frame: InterruptStackFrame, error_code: u64) {
-    println!("EXCEPTION: INVALID_TSS\nerror code: {}\n stack frame:\n{:#?}", error_code, stack_frame);
+    println!(
+        "EXCEPTION: INVALID_TSS\nerror code: {}\n stack frame:\n{:#?}",
+        error_code, stack_frame
+    );
 }
 
-extern "x86-interrupt" fn page_fault_handler(stack_frame: InterruptStackFrame, error_code: PageFaultErrorCode) {
-    println!("EXCEPTION: PAGE FAULT\nerror code: {:#?}\n stack frame:\n{:#?}", error_code, stack_frame);
+extern "x86-interrupt" fn page_fault_handler(
+    stack_frame: InterruptStackFrame,
+    error_code: PageFaultErrorCode,
+) {
+    println!(
+        "EXCEPTION: PAGE FAULT\nerror code: {:#?}\n stack frame:\n{:#?}",
+        error_code, stack_frame
+    );
 }
 
 extern "x86-interrupt" fn double_fault_handler(
@@ -62,7 +76,22 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
 }
 
 extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    print!("A");
+    lazy_static! {
+        static ref KEYBOARD: Mutex<Keyboard<Us104Key, ScancodeSet1>> =
+            Mutex::new(Keyboard::new(Us104Key, ScancodeSet1, HandleControl::Ignore));
+    }
+
+    let mut keyboard = KEYBOARD.lock();
+    let mut port = Port::new(0x60);
+    let scancode: u8 = unsafe { port.read() };
+    if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
+        if let Some(key) = keyboard.process_keyevent(key_event) {
+            match key {
+                DecodedKey::Unicode(character) => print!("{}", character),
+                DecodedKey::RawKey(key) => print!("{:?}", key),
+            }
+        }
+    }
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Keyboard as u8);

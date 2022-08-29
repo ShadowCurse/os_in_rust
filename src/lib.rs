@@ -19,14 +19,14 @@ use interrupts::{init_idt, init_pics};
 
 pub fn panic_handler(info: &PanicInfo) -> ! {
     println!("PANIC: INFO:{:#?}", info);
-    loop {}
+    hlt_loop();
 }
 
 pub fn panic_handler_test(info: &PanicInfo) -> ! {
     println!("[failed]\n");
     println!("Error: {}\n", info);
     exit_qemu(QemuExitCode::Failed);
-    loop {}
+    hlt_loop();
 }
 
 pub fn test_runner(tests: &[&dyn tests::Testable]) {
@@ -62,6 +62,12 @@ pub fn init() {
     init_idt();
     init_pics();
     x86_64::instructions::interrupts::enable();
+}
+
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
+    }
 }
 
 #[cfg(test)]

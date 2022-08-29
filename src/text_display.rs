@@ -30,7 +30,7 @@ impl<'a> TextDisplay<'a> {
     /// Creates a new logger that uses the given framebuffer.
     pub fn new(framebuffer: &'a mut FrameBuffer) -> Self {
         let info = framebuffer.info();
-        let framebuffer =  framebuffer.buffer_mut();
+        let framebuffer = framebuffer.buffer_mut();
         let mut logger = Self {
             info,
             framebuffer,
@@ -76,7 +76,10 @@ impl<'a> TextDisplay<'a> {
                 if (self.height() - BITMAP_LETTER_WIDTH) <= self.y_pos {
                     self.clear();
                 }
-                let bitmap_char = get_bitmap(c, FontWeight::Regular, BitmapHeight::Size14).unwrap();
+                let bitmap_char = get_bitmap(c, FontWeight::Regular, BitmapHeight::Size14)
+                    .unwrap_or_else(|| {
+                        get_bitmap(' ', FontWeight::Regular, BitmapHeight::Size14).unwrap()
+                    });
                 self.write_rendered_char(bitmap_char);
             }
         }

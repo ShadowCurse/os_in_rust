@@ -5,8 +5,6 @@ use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::VirtAddr;
 
-use crate::println;
-
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
 const STACK_SIZE: usize = 4096 * 5;
@@ -46,8 +44,6 @@ struct Selectors {
 
 pub fn init_gdt() {
     GDT.0.load();
-    println!("code_selector: {:#?}", GDT.1.code_selector);
-    println!("tss_selector: {:#?}", GDT.1.tss_selector);
     unsafe {
         CS::set_reg(GDT.1.code_selector);
         load_tss(GDT.1.tss_selector);
