@@ -3,50 +3,47 @@ use std::{
     process::Command,
 };
 
-const RUN_ARGS: &[&str] = &["--no-reboot", "-s"];
+use clap::Parser;
+
+#[derive(Debug, Parser)]
+struct Args {
+    kernel_path: PathBuf,
+    #[clap(long)]
+    no_run: bool,
+    #[clap(long)]
+    no_display: bool,
+}
 
 fn main() {
-    let mut args = std::env::args().skip(1); // skip executable name
-
-    let kernel_binary_path = {
-        let path = PathBuf::from(args.next().unwrap());
-        path.canonicalize().unwrap()
-    };
-    let (no_boot, no_display) = if let Some(arg) = args.next() {
-        match arg.as_str() {
-            "--no-run" => (true, false),
-            "--no-display" => (false, true),
-            other => panic!("unexpected argument `{}`", other),
-        }
-    } else {
-        (false, false)
-    };
+    let args = Args::parse();
+    let kernel_binary_path = args.kernel_path.canonicalize().unwrap();
 
     let bios = create_disk_images(&kernel_binary_path);
 
-    if no_boot {
+    if args.no_run {
         println!("Created disk image at `{}`", bios.display());
         return;
     }
 
-    let mut run_cmd = Command::new("qemu-system-x86_64");
+    let mut run_cmd = Command::new("qemu-kvm");
     run_cmd
         .arg("-drive")
         .arg(format!("format=raw,file={}", bios.display()))
         .arg("-device")
         .arg("isa-debug-exit,iobase=0xf4,iosize=0x04")
         .arg("-serial")
-        .arg("stdio");
+        .arg("stdio")
+        .arg("--no-reboot")
+        .arg("-s");
 
-    if no_display {
+    if args.no_display {
         run_cmd.arg("-display").arg("none");
     }
-
-    run_cmd.args(RUN_ARGS);
 
     let exit_status = run_cmd.status().unwrap();
     if !exit_status.success() {
         if let Some(code) = exit_status.code() {
+            // 33 means successuful shutdown
             if code == 33 {
                 std::process::exit(0);
             } else {
@@ -66,7 +63,7 @@ pub fn create_disk_images(kernel_binary_path: &Path) -> PathBuf {
     build_cmd
         .arg("--kernel-manifest")
         .arg(&kernel_manifest_path);
-    build_cmd.arg("--kernel-binary").arg(&kernel_binary_path);
+    build_cmd.arg("--kernel-binary").arg(kernel_binary_path);
     build_cmd
         .arg("--target-dir")
         .arg(kernel_manifest_path.parent().unwrap().join("target"));
