@@ -1,6 +1,6 @@
-use crate::{gdt::DOUBLE_FAULT_IST_INDEX, print, println};
+use crate::{gdt::DOUBLE_FAULT_IST_INDEX, hlt_loop, print, println};
 use lazy_static::lazy_static;
-use pc_keyboard::{layouts::Us104Key, HandleControl, Keyboard, ScancodeSet1, DecodedKey};
+use pc_keyboard::{layouts::Us104Key, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
 use spin::Mutex;
 use x86_64::{
@@ -54,10 +54,13 @@ extern "x86-interrupt" fn page_fault_handler(
     stack_frame: InterruptStackFrame,
     error_code: PageFaultErrorCode,
 ) {
-    println!(
-        "EXCEPTION: PAGE FAULT\nerror code: {:#?}\n stack frame:\n{:#?}",
-        error_code, stack_frame
-    );
+    use x86_64::registers::control::Cr2;
+
+    println!("EXCEPTION: PAGE FAULT");
+    println!("Accessed Address: {:?}", Cr2::read());
+    println!("Error Code: {:?}", error_code);
+    println!("{:#?}", stack_frame);
+    hlt_loop();
 }
 
 extern "x86-interrupt" fn double_fault_handler(
