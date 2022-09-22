@@ -25,7 +25,7 @@ fn main() {
         return;
     }
 
-    let mut run_cmd = Command::new("qemu-kvm");
+    let mut run_cmd = Command::new("qemu-system-x86_64");
     run_cmd
         .arg("-drive")
         .arg(format!("format=raw,file={}", bios.display()))
@@ -33,6 +33,8 @@ fn main() {
         .arg("isa-debug-exit,iobase=0xf4,iosize=0x04")
         .arg("-serial")
         .arg("stdio")
+        .arg("-cpu")
+        .arg("Skylake-Client-v3")
         .arg("--no-reboot")
         .arg("-s");
 
