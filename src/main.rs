@@ -7,23 +7,28 @@
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os_in_rust::{hlt_loop, init, panic_handler, println, text_display::init_text_display};
+use os_in_rust::{
+    hlt_loop, init, memory::active_level_4_table, panic_handler, println,
+    text_display::init_text_display,
+};
+use x86_64::VirtAddr;
 
 entry_point!(main);
 fn main(boot_info: &'static mut BootInfo) -> ! {
     #[cfg(test)]
     test_main();
 
-    init_text_display(boot_info);
+    init_text_display(boot_info.framebuffer.as_mut().unwrap());
     init();
 
-    use x86_64::registers::control::Cr3;
+    let phys_mem_offset = VirtAddr::new(*boot_info.physical_memory_offset.as_ref().unwrap());
+    let l4_table = unsafe { active_level_4_table(phys_mem_offset) };
 
-    let (level_4_page_table, _) = Cr3::read();
-    println!(
-        "Level 4 page table at: {:?}",
-        level_4_page_table.start_address()
-    );
+    for (i, entry) in l4_table.iter().enumerate() {
+        if !entry.is_unused() {
+            println!("L4 Entry {}: {:?}", i, entry);
+        }
+    }
 
     println!("Hello world");
     hlt_loop();
