@@ -1,7 +1,4 @@
-use bootloader::{
-    boot_info::{FrameBuffer, FrameBufferInfo, PixelFormat},
-    BootInfo,
-};
+use bootloader::boot_info::{FrameBuffer, FrameBufferInfo, PixelFormat};
 use noto_sans_mono_bitmap::{get_bitmap, get_bitmap_width, BitmapChar, BitmapHeight, FontWeight};
 
 /// Additional vertical space between lines
@@ -13,10 +10,8 @@ const BITMAP_LETTER_WIDTH: usize = get_bitmap_width(FontWeight::Regular, BitmapH
 /// Global writer for the framebuffer
 pub static mut TEXTWRITER: Option<TextDisplay<'static>> = None;
 
-pub fn init_text_display(boot_info: &'static mut BootInfo) {
-    if let Some(framebuffer) = boot_info.framebuffer.as_mut() {
-        unsafe { TEXTWRITER = Some(TextDisplay::new(framebuffer)) };
-    }
+pub fn init_text_display(framebuffer: &'static mut FrameBuffer) {
+    unsafe { TEXTWRITER = Some(TextDisplay::new(framebuffer)) };
 }
 
 pub struct TextDisplay<'a> {
