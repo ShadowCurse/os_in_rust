@@ -7,10 +7,8 @@
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os_in_rust::{
-    hlt_loop, init, memory::translate_addr, panic_handler, println, text_display::init_text_display,
-};
-use x86_64::VirtAddr;
+use os_in_rust::{hlt_loop, init, panic_handler, println, text_display::init_text_display};
+use x86_64::{structures::paging::Translate, VirtAddr};
 
 entry_point!(main);
 fn main(boot_info: &'static mut BootInfo) -> ! {
@@ -21,6 +19,8 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
     init();
 
     let phys_mem_offset = VirtAddr::new(*boot_info.physical_memory_offset.as_ref().unwrap());
+
+    let mapper = unsafe { os_in_rust::memory::init(phys_mem_offset) };
 
     let addresses = [
         // the identity-mapped vga buffer page
@@ -35,7 +35,7 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
 
     for &address in &addresses {
         let virt = VirtAddr::new(address);
-        let phys = unsafe { translate_addr(virt, phys_mem_offset) };
+        let phys = mapper.translate_addr(virt);
         println!("{:?} -> {:?}", virt, phys);
     }
     println!("Hello world");
