@@ -1,9 +1,40 @@
+use bootloader::boot_info::{MemoryRegions, MemoryRegionKind};
 use x86_64::{
     structures::paging::{
         FrameAllocator, Mapper, OffsetPageTable, Page, PageTable, PhysFrame, Size4KiB,
     },
     PhysAddr, VirtAddr,
 };
+
+pub struct BootInfoFrameAllocator {
+    memory_regions: &'static MemoryRegions,
+    next: usize,
+}
+
+impl BootInfoFrameAllocator {
+    pub unsafe fn new(memory_regions: &'static MemoryRegions) -> Self {
+        Self {
+            memory_regions,
+            next: 0,
+        }
+    }
+
+    fn usable_frames(&self) -> impl Iterator<Item = PhysFrame> {
+        let regions = self.memory_regions.iter();
+        let usable_regions = regions.filter(|region| region.kind == MemoryRegionKind::Usable);
+        let addr_ranges = usable_regions.map(|region| region.start..region.end);
+        let frame_addresses = addr_ranges.flat_map(|region| region.step_by(4096));
+        frame_addresses.map(|addr| PhysFrame::containing_address(PhysAddr::new(addr)))
+    }
+}
+
+unsafe impl FrameAllocator<Size4KiB> for BootInfoFrameAllocator {
+    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
+        let frame = self.usable_frames().nth(self.next);
+        self.next += 1;
+        frame
+    }
+}
 
 pub unsafe fn init(physical_memory_offset: VirtAddr) -> OffsetPageTable<'static> {
     let level_4_table = active_level_4_table(physical_memory_offset);

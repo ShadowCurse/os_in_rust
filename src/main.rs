@@ -7,7 +7,10 @@
 
 use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os_in_rust::{hlt_loop, init, panic_handler, println, text_display::init_text_display};
+use os_in_rust::{
+    hlt_loop, init, memory::BootInfoFrameAllocator, panic_handler, println,
+    text_display::init_text_display,
+};
 use x86_64::{structures::paging::Translate, VirtAddr};
 
 entry_point!(main);
@@ -38,6 +41,9 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
         let phys = mapper.translate_addr(virt);
         println!("{:?} -> {:?}", virt, phys);
     }
+
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::new(&boot_info.memory_regions) };
+
     println!("Hello world");
     hlt_loop();
 }
