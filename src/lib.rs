@@ -6,7 +6,7 @@
 #![feature(abi_x86_interrupt)]
 #![feature(alloc_error_handler)]
 
-extern crate alloc;
+pub extern crate alloc;
 
 use core::panic::PanicInfo;
 
