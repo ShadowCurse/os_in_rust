@@ -8,9 +8,9 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 struct Args {
     kernel_path: PathBuf,
-    #[clap(long)]
+    #[arg(long)]
     no_run: bool,
-    #[clap(long)]
+    #[arg(long)]
     no_display: bool,
 }
 
