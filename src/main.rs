@@ -7,13 +7,15 @@
 #![feature(alloc_error_handler)]
 
 use bootloader::{entry_point, BootInfo};
+use x86_64::VirtAddr;
+
 use core::panic::PanicInfo;
-use os_in_rust::alloc::boxed::Box;
+
+use os_in_rust::alloc::{boxed::Box, rc::Rc, vec};
 use os_in_rust::{
     allocator::init_heap, hlt_loop, init, memory::BootInfoFrameAllocator, panic_handler, println,
     text_display::init_text_display,
 };
-use x86_64::VirtAddr;
 
 entry_point!(main);
 fn main(boot_info: &'static mut BootInfo) -> ! {
@@ -31,6 +33,18 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
     init_heap(&mut mapper, &mut frame_allocator).expect("Heap init failed");
 
     let _x = Box::new(69);
+
+    let reference_counted = Rc::new(vec![1, 2, 3]);
+    let cloned_reference = reference_counted.clone();
+    println!(
+        "current reference count is {}",
+        Rc::strong_count(&cloned_reference)
+    );
+    core::mem::drop(reference_counted);
+    println!(
+        "reference count is {} now",
+        Rc::strong_count(&cloned_reference)
+    );
 
     println!("Hello world");
     hlt_loop();
