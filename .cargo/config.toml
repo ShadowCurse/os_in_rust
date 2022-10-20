@@ -1,12 +1,18 @@
-[unstable]
-build-std-features = ["compiler-builtins-mem"]
-build-std = ["core", "compiler_builtins", "alloc"]
+# [unstable]
+# build-std-features = ["compiler-builtins-mem"]
+# build-std = ["core", "compiler_builtins", "alloc"]
 
 [target.'cfg(target_os = "none")']
 runner = "cargo run --package boot --"
 
 [alias]
-ktest = "test --target x86_64-target.json -- --no-display"
-kbuild = "build --target x86_64-target.json"
-kimage = "run --target x86_64-target.json -- --no-run"
-krun = "run --target x86_64-target.json"
+ktest = "test --target x86_64-target.json -Zbuild-std=core,alloc,compiler_builtins -Zbuild-std-features=compiler-builtins-mem -- --no-display"
+kimage = "run --target x86_64-target.json -Zbuild-std=core,alloc,compiler_builtins -Zbuild-std-features=compiler-builtins-mem -- --no-run"
+kbuild = "build --target x86_64-target.json -Zbuild-std=core,alloc,compiler_builtins -Zbuild-std-features=compiler-builtins-mem"
+krun = "run --target x86_64-target.json -Zbuild-std=core,alloc,compiler_builtins -Zbuild-std-features=compiler-builtins-mem"
+
+# [build]
+# target = "x86_64-target.json"
+
+# [run]
+# target = "x86_64-target.json"
