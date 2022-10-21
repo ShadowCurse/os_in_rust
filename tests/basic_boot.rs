@@ -5,13 +5,15 @@
 #![reexport_test_harness_main = "test_main"]
 #![feature(abi_x86_interrupt)]
 
-use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os_in_rust::{init, println};
+
+use bootloader::{entry_point, BootInfo};
+
+use os_in_rust::{basic_initialization, println};
 
 entry_point!(main);
-fn main(_boot_info: &'static mut BootInfo) -> ! {
-    init();
+fn main(boot_info: &'static mut BootInfo) -> ! {
+    basic_initialization(boot_info);
     test_main();
     panic!("Qemu not exited");
 }

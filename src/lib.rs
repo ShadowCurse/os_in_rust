@@ -19,8 +19,14 @@ pub mod serial;
 pub mod tests;
 pub mod text_display;
 
+use bootloader::BootInfo;
+use x86_64::VirtAddr;
+
+use allocator::init_heap;
 use gdt::init_gdt;
 use interrupts::{init_idt, init_pics};
+use memory::{memory_mapper, BootInfoFrameAllocator};
+use text_display::init_text_display;
 
 pub fn panic_handler(info: &PanicInfo) -> ! {
     println!("PANIC: INFO:{:#?}", info);
@@ -62,11 +68,20 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
     }
 }
 
-pub fn init() {
+pub fn basic_initialization(boot_info: &'static mut BootInfo) {
+    init_text_display(boot_info.framebuffer.as_mut().unwrap());
+
     init_gdt();
     init_idt();
     init_pics();
+
+    // Enabling interrupts
     x86_64::instructions::interrupts::enable();
+
+    let phys_mem_offset = VirtAddr::new(*boot_info.physical_memory_offset.as_ref().unwrap());
+    let mut mapper = unsafe { memory_mapper(phys_mem_offset) };
+    let mut frame_allocator = unsafe { BootInfoFrameAllocator::new(&boot_info.memory_regions) };
+    init_heap(&mut mapper, &mut frame_allocator).expect("Heap init failed");
 }
 
 pub fn hlt_loop() -> ! {

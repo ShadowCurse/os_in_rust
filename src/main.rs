@@ -7,30 +7,18 @@
 #![feature(alloc_error_handler)]
 
 use bootloader::{entry_point, BootInfo};
-use x86_64::VirtAddr;
 
 use core::panic::PanicInfo;
 
 use os_in_rust::alloc::{boxed::Box, rc::Rc, vec};
-use os_in_rust::{
-    allocator::init_heap, hlt_loop, init, memory::BootInfoFrameAllocator, panic_handler, println,
-    text_display::init_text_display,
-};
+use os_in_rust::{basic_initialization, hlt_loop, panic_handler, println};
 
 entry_point!(main);
 fn main(boot_info: &'static mut BootInfo) -> ! {
     #[cfg(test)]
     test_main();
 
-    init_text_display(boot_info.framebuffer.as_mut().unwrap());
-    init();
-
-    let phys_mem_offset = VirtAddr::new(*boot_info.physical_memory_offset.as_ref().unwrap());
-
-    let mut mapper = unsafe { os_in_rust::memory::init(phys_mem_offset) };
-    let mut frame_allocator = unsafe { BootInfoFrameAllocator::new(&boot_info.memory_regions) };
-
-    init_heap(&mut mapper, &mut frame_allocator).expect("Heap init failed");
+    basic_initialization(boot_info);
 
     let _x = Box::new(69);
 

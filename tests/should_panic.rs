@@ -1,13 +1,17 @@
 #![no_std]
 #![no_main]
 
-use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
-use os_in_rust::{exit_qemu, init, println, serial::init_serial_port, QemuExitCode};
+
+use bootloader::{entry_point, BootInfo};
+
+use os_in_rust::{
+    basic_initialization, exit_qemu, println, serial::init_serial_port, QemuExitCode,
+};
 
 entry_point!(main);
-fn main(_boot_info: &'static mut BootInfo) -> ! {
-    init();
+fn main(boot_info: &'static mut BootInfo) -> ! {
+    basic_initialization(boot_info);
     init_serial_port();
 
     should_fail();

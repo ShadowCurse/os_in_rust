@@ -1,4 +1,3 @@
-use crate::{gdt::DOUBLE_FAULT_IST_INDEX, hlt_loop, print, println};
 use lazy_static::lazy_static;
 use pc_keyboard::{layouts::Us104Key, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
@@ -7,6 +6,8 @@ use x86_64::{
     instructions::port::Port,
     structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode},
 };
+
+use crate::{gdt::DOUBLE_FAULT_IST_INDEX, hlt_loop, print, println};
 
 pub const PIC_1_OFFSET: u8 = 32;
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
