@@ -16,6 +16,7 @@ pub mod interrupts;
 pub mod memory;
 pub mod print;
 pub mod serial;
+pub mod task;
 pub mod tests;
 pub mod text_display;
 

@@ -11,7 +11,10 @@ use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 
 use os_in_rust::alloc::{boxed::Box, rc::Rc, vec};
-use os_in_rust::{basic_initialization, hlt_loop, panic_handler, println};
+use os_in_rust::{
+    basic_initialization, hlt_loop, panic_handler, println,
+    task::{simple_executor::SimpleExecutor, Task},
+};
 
 entry_point!(main);
 fn main(boot_info: &'static mut BootInfo) -> ! {
@@ -34,8 +37,21 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
         Rc::strong_count(&cloned_reference)
     );
 
+    let mut executor = SimpleExecutor::new();
+    executor.spawn(Task::new(example_task()));
+    executor.run();
+
     println!("Hello world");
     hlt_loop();
+}
+
+async fn async_number() -> u32 {
+    42
+}
+
+async fn example_task() {
+    let number = async_number().await;
+    println!("async number: {}", number);
 }
 
 #[panic_handler]
