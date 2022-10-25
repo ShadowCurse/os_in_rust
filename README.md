@@ -5,21 +5,21 @@ This is an implementation of the [Phil-Opp](https://os.phil-opp.com/minimal-rust
 ## Building and runnig
 
 To test the project
-```rust
-  cargo ktest
+```sh
+$ cargo ktest
 ```
 
 To build the project
-```rust
-  cargo kbuild
+```sh
+$ cargo kbuild
 ```
 
 To build the image
-```rust
-  cargo kimage
+```sh
+$ cargo kimage
 ```
 
 To build and run the image
-```rust
-  cargo krun
+```sh
+$ cargo krun
 ```
