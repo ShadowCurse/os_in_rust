@@ -17,6 +17,12 @@ pub struct ScancodeStream {
     _private: (),
 }
 
+impl Default for ScancodeStream {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ScancodeStream {
     pub fn new() -> Self {
         SCANCODE_QUEUE

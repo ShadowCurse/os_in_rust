@@ -10,6 +10,8 @@ pub struct BootInfoFrameAllocator {
 }
 
 impl BootInfoFrameAllocator {
+    /// # Safety
+    /// Memory regions come from boot info provided by bootloader
     pub unsafe fn new(memory_regions: &'static MemoryRegions) -> Self {
         Self {
             memory_regions,
@@ -34,11 +36,21 @@ unsafe impl FrameAllocator<Size4KiB> for BootInfoFrameAllocator {
     }
 }
 
+/// Creates a Mapper for mapping virtual pages
+///
+/// # Safety 
+/// Caller must guarantee that the complete physical memory 
+/// is mapped to virtual memory at the `physical_memory_offset`
 pub unsafe fn memory_mapper(physical_memory_offset: VirtAddr) -> OffsetPageTable<'static> {
     let level_4_table = active_level_4_table(physical_memory_offset);
     OffsetPageTable::new(level_4_table, physical_memory_offset)
 }
 
+/// Returns current active level 4 page table
+///
+/// # Safety 
+/// Caller must guarantee that the complete physical memory 
+/// is mapped to virtual memory at the `physical_memory_offset`
 pub unsafe fn active_level_4_table(physical_memory_offset: VirtAddr) -> &'static mut PageTable {
     use x86_64::registers::control::Cr3;
 
@@ -51,10 +63,17 @@ pub unsafe fn active_level_4_table(physical_memory_offset: VirtAddr) -> &'static
     &mut *page_table_ptr
 }
 
+/// Translates virtual address to the mapped physical address
+///
+/// # Safety 
+/// Caller must guarantee that the complete physical memory 
+/// is mapped to virtual memory at the `physical_memory_offset`
 pub unsafe fn translate_addr(addr: VirtAddr, physical_memory_offset: VirtAddr) -> Option<PhysAddr> {
     translate_addr_inner(addr, physical_memory_offset)
 }
 
+/// Translates virtual address to the mapped physical address
+/// Made private to limint `unsafe` scope
 fn translate_addr_inner(addr: VirtAddr, physical_memory_offset: VirtAddr) -> Option<PhysAddr> {
     use x86_64::registers::control::Cr3;
     use x86_64::structures::paging::page_table::FrameError;

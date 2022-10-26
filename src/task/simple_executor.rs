@@ -3,13 +3,14 @@ use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
 use super::Task;
 
+#[derive(Default)]
 pub struct SimpleExecutor {
     task_queue: VecDeque<Task>,
 }
 
 impl SimpleExecutor {
-    pub fn new() -> SimpleExecutor {
-        SimpleExecutor {
+    pub fn new() -> Self {
+        Self {
             task_queue: VecDeque::new(),
         }
     }

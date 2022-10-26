@@ -37,7 +37,7 @@ fn main(boot_info: &'static mut BootInfo) -> ! {
         Rc::strong_count(&cloned_reference)
     );
 
-    let mut executor = Executor::new();
+    let mut executor = Executor::default();
     executor.spawn(Task::new(example_task()));
     executor.spawn(Task::new(print_keypress()));
     executor.run();
