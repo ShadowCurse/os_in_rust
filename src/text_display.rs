@@ -7,11 +7,11 @@ const LINE_SPACING: usize = 0;
 const FONT_SIZE: usize = 14;
 const BITMAP_LETTER_WIDTH: usize = get_bitmap_width(FontWeight::Regular, BitmapHeight::Size14);
 
-/// Global writer for the framebuffer
-pub static mut TEXTWRITER: Option<TextDisplay<'static>> = None;
+/// Global object for printing to the framebuffer
+pub static mut TEXTDISPLAY: Option<TextDisplay<'static>> = None;
 
 pub fn init_text_display(framebuffer: &'static mut FrameBuffer) {
-    unsafe { TEXTWRITER = Some(TextDisplay::new(framebuffer)) };
+    unsafe { TEXTDISPLAY = Some(TextDisplay::new(framebuffer)) };
 }
 
 pub struct TextDisplay<'a> {
@@ -101,7 +101,6 @@ impl<'a> TextDisplay<'a> {
         let byte_offset = pixel_offset * bytes_per_pixel;
         self.framebuffer[byte_offset..(byte_offset + bytes_per_pixel)]
             .copy_from_slice(&color[..bytes_per_pixel]);
-        // let _ = unsafe { core::ptr::read_volatile(&self.framebuffer[byte_offset]) };
     }
 }
 

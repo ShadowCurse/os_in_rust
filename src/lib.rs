@@ -42,9 +42,6 @@ pub fn panic_handler_test(info: &PanicInfo) -> ! {
 }
 
 pub fn test_runner(tests: &[&dyn tests::Testable]) {
-    use crate::serial::init_serial_port;
-
-    init_serial_port();
     println!("Running {} tests", tests.len());
     for test in tests {
         test.run();

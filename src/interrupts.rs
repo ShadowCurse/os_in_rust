@@ -5,10 +5,13 @@ use x86_64::{
     structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode},
 };
 
-use crate::{gdt::DOUBLE_FAULT_IST_INDEX, hlt_loop, print, println, task::keyboard::add_scancode};
+use crate::{gdt::DOUBLE_FAULT_IST_INDEX, hlt_loop, print, println, task::keyboard};
 
+/// Offsets for PICs so that interrupts appear in the
+/// ranget 32-47 instead of 0-15
 pub const PIC_1_OFFSET: u8 = 32;
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
+
 pub static mut PICS: spin::Mutex<ChainedPics> =
     spin::Mutex::new(unsafe { ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET) });
 
@@ -80,7 +83,7 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
 extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
     let mut port = Port::new(0x60);
     let scancode: u8 = unsafe { port.read() };
-    add_scancode(scancode);
+    keyboard::add_scancode(scancode);
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Keyboard as u8);

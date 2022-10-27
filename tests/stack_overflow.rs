@@ -8,14 +8,10 @@ use bootloader::{entry_point, BootInfo};
 use lazy_static::lazy_static;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
-use os_in_rust::{
-    exit_qemu, gdt::init_gdt, panic_handler_test, println, serial::init_serial_port, QemuExitCode,
-};
+use os_in_rust::{exit_qemu, gdt::init_gdt, panic_handler_test, println, QemuExitCode};
 
 entry_point!(main);
 fn main(_boot_info: &'static mut BootInfo) -> ! {
-    init_serial_port();
-
     init_gdt();
     TEST_IDT.load();
 

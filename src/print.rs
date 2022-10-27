@@ -1,5 +1,5 @@
 #[cfg(not(test))]
-use crate::text_display::TEXTWRITER;
+use crate::text_display::TEXTDISPLAY;
 
 #[cfg(test)]
 use crate::serial::SERIAL;
@@ -20,11 +20,10 @@ pub fn _print(args: core::fmt::Arguments) {
     use core::fmt::Write;
 
     #[cfg(not(test))]
-    if let Some(ref mut writer) = unsafe { TEXTWRITER.as_mut() } {
+    if let Some(ref mut writer) = unsafe { TEXTDISPLAY.as_mut() } {
         writer.write_fmt(args).unwrap();
     }
+
     #[cfg(test)]
-    if let Some(ref mut port) = unsafe { SERIAL.as_mut() } {
-        port.write_fmt(args).unwrap();
-    }
+    SERIAL.lock().write_fmt(args).unwrap()
 }
