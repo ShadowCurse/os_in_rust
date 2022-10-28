@@ -1,3 +1,5 @@
+use core::alloc::Layout;
+
 use linked_list_allocator::LockedHeap;
 use x86_64::{
     structures::paging::{
@@ -13,8 +15,8 @@ pub const HEAP_SIZE: usize = 100 * 1024; // 100 KiB
 static ALLOCATOR: LockedHeap = LockedHeap::empty();
 
 #[alloc_error_handler]
-fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
-    panic!("allocation error: {:?}", layout)
+fn alloc_error_handler(layout: Layout) -> ! {
+    panic!("Allocation error: {:?}", layout)
 }
 
 pub fn init_heap(
